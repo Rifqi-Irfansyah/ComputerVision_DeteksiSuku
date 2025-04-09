@@ -12,7 +12,13 @@ TODO move this to checks/ ?
 """
 from __future__ import print_function, division
 import functools
+import os
+print("Current Working Directory:", os.getcwd())
+print("File Exists:", os.path.exists("input_images"))
 
+import cv2
+import numpy as np
+from imgaug import augmenters as iaa
 
 def main():
     example_simple_training_setting()
@@ -40,47 +46,99 @@ def seeded(func):
         func(*args, **kwargs)
     return wrapper
 
+os.makedirs("output_images", exist_ok=True)
 
-@seeded
+def load_batch_from_folder(folder_path):
+    # Ambil semua file gambar dari folder
+    images = []
+    filenames = []
+    for filename in os.listdir(folder_path):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+            img_path = os.path.join(folder_path, filename)
+            img = cv2.imread(img_path)  # BGR
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # konversi ke RGB
+            images.append(img)
+            filenames.append(filename)
+    return images, filenames
+
+def save_augmented_images(images_aug, filenames):
+    for img_aug, filename in zip(images_aug, filenames):
+        img_aug_bgr = cv2.cvtColor(img_aug, cv2.COLOR_RGB2BGR)
+        save_path = os.path.join("output_images", f"aug_{filename}")
+        cv2.imwrite(save_path, img_aug_bgr)
+
 def example_simple_training_setting():
     print("Example: Simple Training Setting")
-    import numpy as np
-    import imgaug.augmenters as iaa
 
-    def load_batch(batch_idx):
-        # dummy function, implement this
-        # Return a numpy array of shape (N, height, width, #channels)
-        # or a list of (height, width, #channels) arrays (may have different image
-        # sizes).
-        # Images should be in RGB for colorspace augmentations.
-        # (cv2.imread() returns BGR!)
-        # Images should usually be in uint8 with values from 0-255.
-        return np.zeros((128, 32, 32, 3), dtype=np.uint8) + (batch_idx % 255)
-
-    def train_on_images(images):
-        # dummy function, implement this
-        pass
-
-    # Pipeline:
-    # (1) Crop images from each side by 1-16px, do not resize the results
-    #     images back to the input size. Keep them at the cropped size.
-    # (2) Horizontally flip 50% of the images.
-    # (3) Blur images using a gaussian kernel with sigma between 0.0 and 3.0.
+    # Pipeline augmentasi
     seq = iaa.Sequential([
-        iaa.Crop(px=(1, 16), keep_size=False),
-        iaa.Fliplr(0.5),
-        iaa.GaussianBlur(sigma=(0, 3.0))
+        iaa.Crop(px=16, keep_size=True),   # crop 16px tapi jaga ukuran
+        iaa.Fliplr(1.0),                    # selalu flip horizontal
+        iaa.GaussianBlur(sigma=2.0),        # blur 
+        iaa.Dropout((0.01, 0.1), per_channel=0.5),
     ])
 
-    for batch_idx in range(100):
-        images = load_batch(batch_idx)
-        images_aug = seq(images=images)  # done by the library
-        train_on_images(images_aug)
+    # Load gambar asli dari folder
+    images, filenames = load_batch_from_folder("input_images")
+    print(f"Loaded {len(images)} images.")
 
-        # -----
-        # Make sure that the example really does something
-        if batch_idx == 0:
-            assert not np.array_equal(images, images_aug)
+    # Lakukan augmentasi
+    images_aug = seq(images=images)
+
+    # Simpan hasil augmentasi
+    save_augmented_images(images_aug, filenames)
+
+    print("Augmented images saved to ./output_images")
+
+# example_simple_training_setting()
+
+# @seeded
+# def example_simple_training_setting():
+#     print("Example: Simple Training Setting")
+#     import numpy as np
+#     import imgaug.augmenters as iaa
+
+#     def load_batch(batch_idx):
+#         # dummy function, implement this
+#         # Return a numpy array of shape (N, height, width, #channels)
+#         # or a list of (height, width, #channels) arrays (may have different image
+#         # sizes).
+#         # Images should be in RGB for colorspace augmentations.
+#         # (cv2.imread() returns BGR!)
+#         # Images should usually be in uint8 with values from 0-255.
+#         return np.zeros((128, 32, 32, 3), dtype=np.uint8) + (batch_idx % 255)
+
+#     def train_on_images(images):
+#         # dummy function, implement this
+#         print(f"Training on batch of shape: {images.shape}")
+#         pass
+
+#     # Pipeline:
+#     # (1) Crop images from each side by 1-16px, do not resize the results
+#     #     images back to the input size. Keep them at the cropped size.
+#     # (2) Horizontally flip 50% of the images.
+#     # (3) Blur images using a gaussian kernel with sigma between 0.0 and 3.0.
+#     seq = iaa.Sequential([
+#         iaa.Crop(px=16, keep_size=False),  # selalu crop 16px
+#         iaa.Fliplr(1.0),                    # selalu flip
+#         iaa.GaussianBlur(sigma=2.0)        # selalu blur
+#     ])
+
+#     # seq = iaa.Sequential([
+#     #     iaa.Crop(px=(1, 16), keep_size=True),
+#     #     iaa.Fliplr(0.5),
+#     #     iaa.GaussianBlur(sigma=(0, 3.0))
+#     # ])
+
+#     for batch_idx in range(100):
+#         images = load_batch(batch_idx)
+#         images_aug = seq(images=images)  # done by the library
+#         train_on_images(images_aug)
+
+#         # -----
+#         # Make sure that the example really does something
+#         if batch_idx == 0:
+#             assert not np.array_equal(images, images_aug)
 
 
 @seeded
@@ -509,4 +567,4 @@ def example_hooks():
 
 
 if __name__ == "__main__":
-    main()
+    example_simple_training_setting()
