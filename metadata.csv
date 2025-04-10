@@ -1,0 +1,75 @@
+path_gambar,nama,suku,ekspresi,sudut,pencahayaan
+DataSet/Aceh/Adiatama/image1.jpg, Adiatama, Medan, tersenyum, frontal, terang
+DataSet/Aceh/Adiatama/image2.jpg, Adiatama, Medan, memakai masker, profile, terang
+DataSet/Aceh/Adiatama/image3.jpg, Adiatama, Medan, merenung tertunduk, frontal, terang
+DataSet/Aceh/Adiatama/image4.jpg, Adiatama, Medan, datar, frontal, terang
+DataSet/Aceh/Adiatama/image5.jpg, Adiatama, Medan, muka fokus, frontal, terang
+DataSet/Aceh/Atos/image1.png,Atos,Aceh, datar, gelap
+DataSet/Aceh/Atos/image2.png,Atos,Aceh, indoor,tersenyum, kacamata
+DataSet/Aceh/Atos/image3.png,Atos,Aceh, kacamata, outdoor
+DataSet/Aceh/Atos/image4.png,Atos,Aceh, putih, hitam
+DataSet/Aceh/Atos/image5.png,Atos,Aceh, tampak samping, cerah
+DataSet/Aceh/Atos/image6.png,Atos,Aceh, tampak samping, helm, pencahayaan
+DataSet/Aceh/Nelsa/image1.jpg, Nelsa, Aceh, datar, frontal, indoor terang
+DataSet/Aceh/Nelsa/image2.jpg, Nelsa, Aceh, melihat ke bawah, frontal , indoor terang
+DataSet/Aceh/Nelsa/image3.jpg, Nelsa, Aceh, datar, 3/4 view, indoor terang
+DataSet/Aceh/Nelsa/image4.jpg, Nelsa, Aceh, tersenyum, profile, indoor terang
+DataSet/Aceh/Nelsa/image5.jpg, Nelsa, Aceh, tersenyum, frontal, indoor terang
+DataSet/Jawa/Caca/image1.jpg, Caca, Jawa, tersenyum miring, frontal, outdoor terang
+DataSet/Jawa/Caca/image2.jpg, Caca, Jawa, datar, frontal, indoor terang
+DataSet/Jawa/Caca/image3.jpg, Caca, Jawa, tersenyum, top view, indoor terang
+DataSet/Jawa/Caca/image4.jpg, Caca, Jawa, tersenyum tipis, profile, indoor terang
+DataSet/Jawa/Caca/image5.jpg, Caca, Jawa, melihat ke samping, 3/4 view, indoor terang
+DataSet/Jawa/Haryono/image1.jpg, Haryono, Jawa, datar, frontal, outdoor terang
+DataSet/Jawa/Haryono/image2.jpg, Haryono, Jawa, tersenyum gigi, frontal, outdoor terang
+DataSet/Jawa/Haryono/image3.jpg, Haryono, Jawa, datar, 3/4 view, outdoor terang
+DataSet/Jawa/Haryono/image4.jpg, Haryono, Jawa, melihat ke bawah, profile, outdoor terang
+DataSet/Jawa/Haryono/image5.jpg, Haryono, Jawa, tersenyum gigi, 3/4 view, outdoor terang
+DataSet/Jawa/Melly/image1.jpg, Melly, Jawa, tersenyum, frontal, indoor terang
+DataSet/Jawa/Melly/image2.jpg, Melly, Jawa, tersenyum miring, frontal, indoor terang
+DataSet/Jawa/Melly/image3.jpg, Melly, Jawa, tersenyum menghadap samping, 3/4 view, indoor terang
+DataSet/Jawa/Melly/image4.jpg, Melly, Jawa, serius, frontal, outdoor terang
+DataSet/Jawa/Melly/image5.jpg, Melly, Jawa, melihat ke atas, frontal, outdoor terang
+DataSet/Jawa/Nisa/image1.jpg, Nisa, Jawa, datar, top view, indoor terang
+DataSet/Jawa/Nisa/image2.jpg, Nisa, Jawa, datar, 3/4 view, indoor terang
+DataSet/Jawa/Nisa/image3.jpg, Nisa, Jawa, datar, 3/4 view, indoor terang
+DataSet/Jawa/Nisa/image4.jpg, Nisa, Jawa, datar, low angle 3/4 view, indoor terang
+DataSet/Jawa/Nisa/image5.jpg, Nisa, Jawa, tersenyum, low angle 3/4 view, indoor terang
+DataSet/Medan/Marco/image1.jpg, Marco, Medan, datar melihat ke samping, 3/4 view, outdoor terang
+DataSet/Medan/Marco/image2.jpg, Marco, Medan, tersenyum tipis, 3/4 view, outdoor terang
+DataSet/Medan/Marco/image3.jpg, Marco, Medan, memakai masker, low angle 3/4 view, indoor gelap
+DataSet/Medan/Marco/image4.jpg, Marco, Medan, mendongakkan kepala, frontal, indoor terang
+DataSet/Medan/Marco/image5.jpg, Marco, Medan, datar, low angle, indoor terang
+DataSet/Medan/Marco/image6.jpg, Marco, Medan, tertutup handphone, profile, indoor terang
+DataSet/Medan/Nashwa/image1.jpg, Nashwa, Medan, datar, profile, outdoor terang
+DataSet/Medan/Nashwa/image2.jpg, Nashwa, Medan, tersenyum, top view, outdoor terang
+DataSet/Medan/Nashwa/image3.jpg, Nashwa, Medan, tersenyum, profile, indoor terang
+DataSet/Medan/Nashwa/image4.jpg, Nashwa, Medan, datar, low angle, indoor terang
+DataSet/Medan/Nashwa/image5.jpg, Nashwa, Medan, datar, low angle, indoor terang
+DataSet/Sunda/Afriza/image1.png,Afriza,Sunda, datar, frontal, indoor terang
+DataSet/Sunda/Afriza/image3.jpeg,Afriza,Sunda, datar, 3/4 view, outdoor terang
+DataSet/Sunda/Afriza/image2.jpeg,Afriza,Sunda, tersenyum,frontal, outdoor terang
+DataSet/Sunda/Afriza/image4.jpeg,Afriza,Sunda, tersenyum, frontal, indoor terang
+DataSet/Sunda/Afriza/image5.jpeg,Afriza,Sunda, tersenyum, frontal, indoor terang
+DataSet/Sunda/Afriza/image6.jpeg,Afriza,Sunda, tersenyum, 3/4 view, indoor gelap
+DataSet/Sunda/Afriza/image7.jpeg,Afriza,Sunda, tersenyum, 3/4 view, indoor gelap
+DataSet/Sunda/Darmin/image1.jpg,Darmin,Jawa, tersenyum, 3/4 view, indoor terang
+DataSet/Sunda/Darmin/image2.jpg,Darmin,Jawa, tersenyum, frontal, indoor terang
+DataSet/Sunda/Darmin/image3.jpg,Darmin,Jawa, datar, frontal, outdoor terang
+DataSet/Sunda/Darmin/image4.jpg,Darmin,Jawa, datar, profile, outdoor gelap
+DataSet/Sunda/Darmin/image5.jpg,Darmin,Jawa, datar, low angle, outdoor terang
+DataSet/Sunda/Darmin/image6.jpg,Darmin,Jawa, tersenyum, 3/4 view, outdoor terang
+DataSet/Sunda/Darmin/image7.jpg,Darmin,Jawa, tersenyum, frontal, outdoor terang
+DataSet/Sunda/Gumki/image1.jpg,Gumki,Sunda, tersenyum, frontal, outdoor terang
+DataSet/Sunda/Gumki/image2.jpg,Gumki,Sunda, tersenyum, frontal, outdoor terang
+DataSet/Sunda/Gumki/image3.jpg,Gumki,Sunda, datar, frontal, outdoor terang
+DataSet/Sunda/Gumki/image4.jpg,Gumki,Sunda, data, 3/4 view, indoor terang
+DataSet/Sunda/Gumki/image5.jpg,Gumki,Sunda, tampak samping, terang, datar
+DataSet/Sunda/Gumki/image6.jpg,Gumki,Sunda, outdoor, senyumGumki/ tipis
+DataSet/Sunda/Gumki/image7.jpg,Gumki,Sunda, rambut berbeda, tersenyum, sangat terang
+DataSet/Sunda/Kapap/image1.jpg,Kapap,Sunda,malam,gelap,outdoor
+DataSet/Sunda/Kapap/image2.jpg,Kapap,Sunda,terang,kacamata
+DataSet/Sunda/Kapap/image3.jpg,Kapap,Sunda,terang,topi
+DataSet/Sunda/Kapap/image4.jpg,Kapap,Sunda,terang,tampak samping
+DataSet/Sunda/Kapap/image5.jpg,Kapap,Sunda,outdoor, cahaya sore, tersenyum
+DataSet/Sunda/Kapap/image6.jpg,Kapap,Sunda,terang,bersepeda, muka fokus
