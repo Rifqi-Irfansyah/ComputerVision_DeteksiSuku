@@ -48,6 +48,9 @@ def seeded(func):
 
 os.makedirs("output_images", exist_ok=True)
 
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+
 def load_batch_from_folder(folder_path):
     # Ambil semua file gambar dari folder
     images = []
@@ -61,11 +64,38 @@ def load_batch_from_folder(folder_path):
             filenames.append(filename)
     return images, filenames
 
+def detect_and_crop_faces(images, filenames):
+    cropped_faces = []
+    cropped_filenames = []
+
+    for img, filename in zip(images, filenames):
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
+        
+
+        if len(faces) == 0:
+            print(f"Tidak ditemukan wajah di gambar: {filename}")
+            continue
+
+        for i, (x, y, w, h) in enumerate(faces):
+            face = img[y:y+h, x:x+w]
+            new_filename = f"face_{i}_{filename}"
+            cropped_faces.append(face)
+            cropped_filenames.append(new_filename)
+
+    return cropped_faces, cropped_filenames
+
 def save_augmented_images(images_aug, filenames):
     for img_aug, filename in zip(images_aug, filenames):
         img_aug_bgr = cv2.cvtColor(img_aug, cv2.COLOR_RGB2BGR)
         save_path = os.path.join("output_images", f"aug_{filename}")
         cv2.imwrite(save_path, img_aug_bgr)
+
+def save_cropped_faces(images, filenames):
+    for img, filename in zip(images, filenames):
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        save_path = os.path.join("output_images", filename)
+        cv2.imwrite(save_path, img_bgr)
 
 def example_simple_training_setting():
     print("Example: Simple Training Setting")
@@ -76,15 +106,25 @@ def example_simple_training_setting():
         iaa.Fliplr(1.0),                    # selalu flip horizontal
         iaa.GaussianBlur(sigma=2.0),        # blur 
         iaa.Dropout((0.01, 0.1), per_channel=0.5),
+        iaa.Resize((224, 224)),                       # Resize ke ukuran tetap sebelum augmentasi
+        iaa.Affine(rotate=(-15, 15)),                 # Rotasi acak antara -15° sampai 15°
+        iaa.Fliplr(0.5),                              # 50% kemungkinan flip horizontal
+        iaa.Multiply((0.8, 1.2)),                     # Brightness: ±20%
+        iaa.LinearContrast((0.8, 1.2)),               # Contrast: ±20%
+        iaa.AdditiveGaussianNoise(scale=(0, 0.02*255))  # Gaussian noise ringan
     ])
 
     # Load gambar asli dari folder
     images, filenames = load_batch_from_folder("input_images")
     print(f"Loaded {len(images)} images.")
 
+    # images_aug = seq(images=images)
+
+    cropped_faces, cropped_filenames = detect_and_crop_faces(images, filenames)
+    save_cropped_faces(cropped_faces, cropped_filenames)
+    
     # Lakukan augmentasi
     images_aug = seq(images=images)
-
     # Simpan hasil augmentasi
     save_augmented_images(images_aug, filenames)
 
