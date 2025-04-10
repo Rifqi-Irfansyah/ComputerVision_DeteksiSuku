@@ -13,6 +13,8 @@ TODO move this to checks/ ?
 from __future__ import print_function, division
 import functools
 import os
+
+import pandas as pd
 print("Current Working Directory:", os.getcwd())
 print("File Exists:", os.path.exists("input_images"))
 
@@ -87,9 +89,33 @@ def detect_and_crop_faces(images, filenames):
 
 def save_augmented_images(images_aug, filenames):
     for img_aug, filename in zip(images_aug, filenames):
+        save_path = os.path.join("../Output", f"{filename}")
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
         img_aug_bgr = cv2.cvtColor(img_aug, cv2.COLOR_RGB2BGR)
-        save_path = os.path.join("output_images", f"aug_{filename}")
-        cv2.imwrite(save_path, img_aug_bgr)
+
+        success = cv2.imwrite(save_path, img_aug_bgr)
+        if success:
+            print(f"✅ Berhasil simpan: {save_path}")
+        else:
+            print(f"❌ Gagal menyimpan gambar: {save_path}")
+
+def read_csv(path_csv):
+    df = pd.read_csv(path_csv)
+    image_paths = df['path_gambar'].tolist()
+
+    images = []
+    filenames = []
+    for path in image_paths:
+        if path.lower().endswith(('.png', '.jpg', '.jpeg')):
+            img = cv2.imread("../"+path)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            images.append(img)
+            filenames.append(path)
+            
+        print(f"Loaded {len(images)} images.")
+
+    return images, filenames
 
 def save_cropped_faces(images, filenames):
     for img, filename in zip(images, filenames):
@@ -114,9 +140,7 @@ def example_simple_training_setting():
         iaa.AdditiveGaussianNoise(scale=(0, 0.02*255))  # Gaussian noise ringan
     ])
 
-    # Load gambar asli dari folder
-    images, filenames = load_batch_from_folder("input_images")
-    print(f"Loaded {len(images)} images.")
+    images, filenames = read_csv("../metadata.csv")
 
     # images_aug = seq(images=images)
 
@@ -128,7 +152,7 @@ def example_simple_training_setting():
     # Simpan hasil augmentasi
     save_augmented_images(images_aug, filenames)
 
-    print("Augmented images saved to ./output_images")
+    print("Augmented images saved")
 
 # example_simple_training_setting()
 
