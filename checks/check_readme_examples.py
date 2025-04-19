@@ -21,6 +21,8 @@ print("File Exists:", os.path.exists("input_images"))
 import cv2
 import numpy as np
 from imgaug import augmenters as iaa
+from PIL import Image
+from facenet_pytorch import MTCNN
 
 def main():
     example_simple_training_setting()
@@ -66,6 +68,7 @@ def load_batch_from_folder(folder_path):
             filenames.append(filename)
     return images, filenames
 
+#Haar Cascade
 def detect_and_crop_faces(images, filenames):
     cropped_faces = []
     cropped_filenames = []
@@ -87,9 +90,36 @@ def detect_and_crop_faces(images, filenames):
 
     return cropped_faces, cropped_filenames
 
-def save_augmented_images(images_aug, filenames):
+detector = MTCNN(keep_all=True)
+def detect_face_with_mcnn(images, filenames, output_dir='detected_faces'):
+    detected_faces = []
+    new_filenames = []
+    os.makedirs(output_dir, exist_ok=True)
+    failed = 0
+
+    for img_array, fname in zip(images, filenames):
+        # img_rgb = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+        img_pil = Image.fromarray(img_array)
+        boxes, _ = detector.detect(img_pil)
+
+        if boxes is not None:
+            for box in boxes:
+                x1, y1, x2, y2 = map(int, box)
+                cropped = img_pil.crop((x1, y1, x2, y2))
+                cropped_array = np.array(cropped)
+                detected_faces.append(cropped_array)
+                new_filename = fname
+                new_filenames.append(new_filename)
+        else:
+            failed += 1
+            print(f"Tidak ada wajah ditemukan di {fname}")
+        
+    print(f"‼️ {failed} Gambar tidak dapat terdeteksi wajahnya dengan MCNN ‼️")
+    return detected_faces, new_filenames
+
+def save_images(images_aug, filenames, directory):
     for img_aug, filename in zip(images_aug, filenames):
-        save_path = os.path.join("../Output", f"{filename}")
+        save_path = os.path.join("../Output", directory, f"{filename}")
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
         img_aug_bgr = cv2.cvtColor(img_aug, cv2.COLOR_RGB2BGR)
@@ -146,11 +176,14 @@ def example_simple_training_setting():
 
     cropped_faces, cropped_filenames = detect_and_crop_faces(images, filenames)
     save_cropped_faces(cropped_faces, cropped_filenames)
+
+    images_mcnn, new_filenames = detect_face_with_mcnn(images, filenames)
+    save_images(images_mcnn, new_filenames, "MCNN")
     
     # Lakukan augmentasi
     images_aug = seq(images=images)
     # Simpan hasil augmentasi
-    save_augmented_images(images_aug, filenames)
+    save_images(images_aug, filenames, "Augmented")
 
     print("Augmented images saved")
 
