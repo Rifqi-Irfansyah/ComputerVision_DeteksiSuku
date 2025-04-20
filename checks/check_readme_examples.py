@@ -220,8 +220,8 @@ def get_face_embeddings_and_similarity(images, filenames):
 def face_similarity_check(path_image1, image1_name, path_image2, image2_name, threshold=1.0):
     # Gabungkan path lengkap untuk gambar
     paths = [
-        os.path.join(path_image1, image1_name),
-        os.path.join(path_image2, image2_name)
+        path_image1,
+        path_image2
     ]
     images = []
 
@@ -249,6 +249,7 @@ def face_similarity_check(path_image1, image1_name, path_image2, image2_name, th
         print("🟢 MATCH (wajah kemungkinan mirip)")
     else:
         print("🔴 NOT MATCH (wajah kemungkinan berbeda)")
+    return similarity
 
 def calculate_face_similarity(embedding1, embedding2):
     distance = F.pairwise_distance(embedding1.unsqueeze(0), embedding2.unsqueeze(0))
