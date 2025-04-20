@@ -23,6 +23,9 @@ import numpy as np
 from imgaug import augmenters as iaa
 from PIL import Image
 from facenet_pytorch import MTCNN
+from facenet_pytorch import MTCNN, InceptionResnetV1
+from torchvision import transforms
+import torch.nn.functional as F
 
 def main():
     example_simple_training_setting()
@@ -53,7 +56,7 @@ def seeded(func):
 os.makedirs("output_images", exist_ok=True)
 
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-
+model = InceptionResnetV1(pretrained='vggface2').eval()
 
 def load_batch_from_folder(folder_path):
     # Ambil semua file gambar dari folder
@@ -153,6 +156,32 @@ def save_cropped_faces(images, filenames):
         save_path = os.path.join("output_images", filename)
         cv2.imwrite(save_path, img_bgr)
 
+transform = transforms.Compose([
+    transforms.Resize((160, 160)),  
+    transforms.ToTensor(),          
+    transforms.Normalize([0.5], [0.5])  
+])
+
+# Fungsi untuk ekstraksi fitur wajah dan menghitung similarity
+def get_face_embeddings_and_similarity(images, filenames):
+    print("masuk embedding.")
+    embeddings = []
+    new_filenames = []
+
+    for img, filename in zip(images, filenames):
+        img_pil = Image.fromarray(img)
+        img_tensor = transform(img_pil).unsqueeze(0)  
+        embedding = model(img_tensor)  
+        embeddings.append(embedding.detach())
+        new_filenames.append(filename)
+
+    print(f"Total {len(embeddings)} embeddings extracted.")
+    return embeddings, new_filenames
+
+def calculate_face_similarity(embedding1, embedding2):
+    distance = F.pairwise_distance(embedding1.unsqueeze(0), embedding2.unsqueeze(0))
+    return distance.item()
+
 def example_simple_training_setting():
     print("Example: Simple Training Setting")
 
@@ -186,6 +215,43 @@ def example_simple_training_setting():
     save_images(images_aug, filenames, "Augmented")
 
     print("Augmented images saved")
+
+    # Ekstraksi fitur wajah
+    path_image = "../Output/MCNN/DataSet/Sunda/Afriza"
+    path_images = "../Output/MCNN/DataSet/Medan/Nashwa"
+    image1 = "image1.png"
+    image2 = "image7.jpeg"
+
+    paths = [
+        os.path.join(path_image, image1),
+        os.path.join(path_image, image2)
+    ]
+    images = []
+
+    for path in paths:
+        if not os.path.exists(path):
+            print(f"❌ Gambar tidak ditemukan: {path}")
+            return
+        img = cv2.imread(path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        images.append(img)
+
+    # Ekstraksi fitur dari dua gambar wajah
+    embeddings, _ = get_face_embeddings_and_similarity(images, paths)
+
+    if len(embeddings) != 2:
+        print("❌ Gagal mendapatkan embedding dari kedua gambar.")
+        return
+
+    similarity = calculate_face_similarity(embeddings[0], embeddings[1])
+    print(f"\n✅ Similarity antara wajah:")
+    print(f"   {os.path.basename(path_image)} dan {os.path.basename(path_image)} => {similarity:.4f}")
+
+    threshold = 1.0
+    if similarity <= threshold:
+        print("🟢 MATCH (wajah kemungkinan mirip)")
+    else:
+        print("🔴 NOT MATCH (wajah kemungkinan berbeda)")
 
 # example_simple_training_setting()
 
