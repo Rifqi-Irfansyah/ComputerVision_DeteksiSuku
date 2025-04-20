@@ -27,6 +27,16 @@ from facenet_pytorch import MTCNN, InceptionResnetV1
 from torchvision import transforms
 import torch.nn.functional as F
 from retinaface import RetinaFace
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.preprocessing import image
+import tensorflow as tf
+import os
+
 
 def main():
     example_simple_training_setting()
@@ -207,9 +217,112 @@ def get_face_embeddings_and_similarity(images, filenames):
     print(f"Total {len(embeddings)} embeddings extracted.")
     return embeddings, new_filenames
 
+def face_similarity_check(path_image1, image1_name, path_image2, image2_name, threshold=1.0):
+    # Gabungkan path lengkap untuk gambar
+    paths = [
+        os.path.join(path_image1, image1_name),
+        os.path.join(path_image2, image2_name)
+    ]
+    images = []
+
+    # Load dan konversi gambar
+    for path in paths:
+        if not os.path.exists(path):
+            print(f"❌ Gambar tidak ditemukan: {path}")
+            return
+        img = cv2.imread(path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        images.append(img)
+
+    # Ekstraksi fitur dari dua gambar wajah
+    embeddings, _ = get_face_embeddings_and_similarity(images, paths)
+
+    if len(embeddings) != 2:
+        print("❌ Gagal mendapatkan embedding dari kedua gambar.")
+        return
+
+    similarity = calculate_face_similarity(embeddings[0], embeddings[1])
+    print(f"\n✅ Similarity antara wajah:")
+    print(f"   {image1_name} dan {image2_name} => {similarity:.4f}")
+
+    if similarity <= threshold:
+        print("🟢 MATCH (wajah kemungkinan mirip)")
+    else:
+        print("🔴 NOT MATCH (wajah kemungkinan berbeda)")
+
 def calculate_face_similarity(embedding1, embedding2):
     distance = F.pairwise_distance(embedding1.unsqueeze(0), embedding2.unsqueeze(0))
     return distance.item()
+
+def train_ethnicity_classifier(dataset_dir="../output_images/MCNN/DataSet", model_path="ethnicity_classifier_resnet50.h5"):
+    print("❌masuk training")
+    batch_size = 5
+    target_size = (224, 224)
+
+    datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input,
+        validation_split=0.2
+    )
+
+    train_generator = datagen.flow_from_directory(
+        dataset_dir,
+        target_size=target_size,
+        batch_size=batch_size,
+        class_mode='categorical',
+        subset='training'
+    )
+
+    val_generator = datagen.flow_from_directory(
+        dataset_dir,
+        target_size=target_size,
+        batch_size=batch_size,
+        class_mode='categorical',
+        subset='validation'
+    )
+
+    num_ethnicities = len(train_generator.class_indices)
+
+    base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(1024, activation='relu')(x)
+    predictions = Dense(num_ethnicities, activation='softmax')(x)
+
+    model = Model(inputs=base_model.input, outputs=predictions)
+
+    for layer in base_model.layers:
+        layer.trainable = False
+
+    model.compile(optimizer=Adam(learning_rate=1e-4),
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+
+    model.fit(
+        train_generator,
+        validation_data=val_generator,
+        epochs=10
+    )
+
+    model.save(model_path)
+    print(f"✅ Model disimpan ke {model_path}")
+    return model, train_generator.class_indices
+
+def predict_ethnicity(image_path, model_path="ethnicity_classifier_resnet50.h5", class_indices=None):
+    print("masuk predict")
+    model = tf.keras.models.load_model(model_path)
+
+    img = image.load_img(image_path, target_size=(224, 224))
+    x = image.img_to_array(img)
+    x = preprocess_input(x)
+    x = np.expand_dims(x, axis=0)
+
+    pred = model.predict(x)
+    if class_indices is None:
+        raise ValueError("class_indices harus disediakan jika ingin melihat label etnis.")
+
+    ethnicity = list(class_indices.keys())[np.argmax(pred)]
+    print(f"Predicted ethnicity: {ethnicity}")
+    return ethnicity
 
 def example_simple_training_setting():
     print("Example: Simple Training Setting")
@@ -239,85 +352,21 @@ def example_simple_training_setting():
     images_retina, new_filenames = detect_face_with_retina_face(images[:10], filenames[:10])
     save_images(images_retina, new_filenames, "RetinaFace")
     
+    model, classes = train_ethnicity_classifier()
+    predict_ethnicity("../output_images/Cek/tes11.png", class_indices=classes)
+
     # Lakukan augmentasi
     images_aug = seq(images=images)
     # Simpan hasil augmentasi
     save_images(images_aug, filenames, "Augmented")
     print("Augmented images saved")
 
-    # Ekstraksi fitur wajah
-    path_image = "../Output/MCNN/DataSet/Sunda/Afriza"
-    path_images = "../Output/MCNN/DataSet/Medan/Nashwa"
-    image1 = "image1.png"
-    image2 = "image7.jpeg"
-
-    paths = [
-        os.path.join(path_image, image1),
-        os.path.join(path_image, image2)
-    ]
-    images = []
-
-    for path in paths:
-        if not os.path.exists(path):
-            print(f"❌ Gambar tidak ditemukan: {path}")
-            return
-        img = cv2.imread(path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        images.append(img)
-
-    # Ekstraksi fitur dari dua gambar wajah
-    embeddings, _ = get_face_embeddings_and_similarity(images, paths)
-
-    if len(embeddings) != 2:
-        print("❌ Gagal mendapatkan embedding dari kedua gambar.")
-        return
-
-    similarity = calculate_face_similarity(embeddings[0], embeddings[1])
-    print(f"\n✅ Similarity antara wajah:")
-    print(f"   {os.path.basename(path_image)} dan {os.path.basename(path_image)} => {similarity:.4f}")
-
-    threshold = 1.0
-    if similarity <= threshold:
-        print("🟢 MATCH (wajah kemungkinan mirip)")
-    else:
-        print("🔴 NOT MATCH (wajah kemungkinan berbeda)")
-
-    # Ekstraksi fitur wajah
-    path_image = "../Output/MCNN/DataSet/Sunda/Afriza"
-    path_images = "../Output/MCNN/DataSet/Medan/Nashwa"
-    image1 = "image1.png"
-    image2 = "image7.jpeg"
-
-    paths = [
-        os.path.join(path_image, image1),
-        os.path.join(path_image, image2)
-    ]
-    images = []
-
-    for path in paths:
-        if not os.path.exists(path):
-            print(f"❌ Gambar tidak ditemukan: {path}")
-            return
-        img = cv2.imread(path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        images.append(img)
-
-    # Ekstraksi fitur dari dua gambar wajah
-    embeddings, _ = get_face_embeddings_and_similarity(images, paths)
-
-    if len(embeddings) != 2:
-        print("❌ Gagal mendapatkan embedding dari kedua gambar.")
-        return
-
-    similarity = calculate_face_similarity(embeddings[0], embeddings[1])
-    print(f"\n✅ Similarity antara wajah:")
-    print(f"   {os.path.basename(path_image)} dan {os.path.basename(path_image)} => {similarity:.4f}")
-
-    threshold = 1.0
-    if similarity <= threshold:
-        print("🟢 MATCH (wajah kemungkinan mirip)")
-    else:
-        print("🔴 NOT MATCH (wajah kemungkinan berbeda)")
+    face_similarity_check(
+        path_image1="../Output/MCNN/DataSet/Sunda/Afriza",
+        image1_name="image1.png",
+        path_image2="../Output/MCNN/DataSet/Medan/Nashwa",
+        image2_name="image1.jpg"
+    )
 
 # example_simple_training_setting()
 
