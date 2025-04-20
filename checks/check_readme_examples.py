@@ -26,6 +26,7 @@ from facenet_pytorch import MTCNN
 from facenet_pytorch import MTCNN, InceptionResnetV1
 from torchvision import transforms
 import torch.nn.functional as F
+from retinaface import RetinaFace
 
 def main():
     example_simple_training_setting()
@@ -94,14 +95,12 @@ def detect_and_crop_faces(images, filenames):
     return cropped_faces, cropped_filenames
 
 detector = MTCNN(keep_all=True)
-def detect_face_with_mcnn(images, filenames, output_dir='detected_faces'):
+def detect_face_with_mcnn(images, filenames):
     detected_faces = []
     new_filenames = []
-    os.makedirs(output_dir, exist_ok=True)
     failed = 0
 
     for img_array, fname in zip(images, filenames):
-        # img_rgb = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
         img_pil = Image.fromarray(img_array)
         boxes, _ = detector.detect(img_pil)
 
@@ -118,6 +117,36 @@ def detect_face_with_mcnn(images, filenames, output_dir='detected_faces'):
             print(f"Tidak ada wajah ditemukan di {fname}")
         
     print(f"‼️ {failed} Gambar tidak dapat terdeteksi wajahnya dengan MCNN ‼️")
+    return detected_faces, new_filenames
+
+def detect_face_with_retina_face(images, filenames):
+    detected_faces = []
+    new_filenames = []
+    failed = 0
+
+    for img_array, fname in zip(images, filenames):
+        try:
+            faces = RetinaFace.detect_faces(img_array)
+        except Exception as e:
+            print(f"Gagal mendeteksi wajah pada {fname}: {e}")
+            failed += 1
+            continue
+
+        if isinstance(faces, dict):
+            for i, face_key in enumerate(faces):
+                face = faces[face_key]
+                x1, y1, x2, y2 = map(int, face['facial_area'])
+
+                cropped = img_array[y1:y2, x1:x2]
+                detected_faces.append(cropped)
+
+                new_filename = fname
+                new_filenames.append(new_filename)
+        else:
+            failed += 1
+            print(f"Tidak ada wajah ditemukan di {fname}")
+        
+    print(f"‼️ {failed} gambar tidak dapat terdeteksi wajahnya dengan RetinaFace ‼️")
     return detected_faces, new_filenames
 
 def save_images(images_aug, filenames, directory):
@@ -201,20 +230,57 @@ def example_simple_training_setting():
 
     images, filenames = read_csv("../metadata.csv")
 
-    # images_aug = seq(images=images)
-
     cropped_faces, cropped_filenames = detect_and_crop_faces(images, filenames)
     save_cropped_faces(cropped_faces, cropped_filenames)
 
     images_mcnn, new_filenames = detect_face_with_mcnn(images, filenames)
     save_images(images_mcnn, new_filenames, "MCNN")
+
+    images_retina, new_filenames = detect_face_with_retina_face(images[:10], filenames[:10])
+    save_images(images_retina, new_filenames, "RetinaFace")
     
     # Lakukan augmentasi
     images_aug = seq(images=images)
     # Simpan hasil augmentasi
     save_images(images_aug, filenames, "Augmented")
-
     print("Augmented images saved")
+
+    # Ekstraksi fitur wajah
+    path_image = "../Output/MCNN/DataSet/Sunda/Afriza"
+    path_images = "../Output/MCNN/DataSet/Medan/Nashwa"
+    image1 = "image1.png"
+    image2 = "image7.jpeg"
+
+    paths = [
+        os.path.join(path_image, image1),
+        os.path.join(path_image, image2)
+    ]
+    images = []
+
+    for path in paths:
+        if not os.path.exists(path):
+            print(f"❌ Gambar tidak ditemukan: {path}")
+            return
+        img = cv2.imread(path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        images.append(img)
+
+    # Ekstraksi fitur dari dua gambar wajah
+    embeddings, _ = get_face_embeddings_and_similarity(images, paths)
+
+    if len(embeddings) != 2:
+        print("❌ Gagal mendapatkan embedding dari kedua gambar.")
+        return
+
+    similarity = calculate_face_similarity(embeddings[0], embeddings[1])
+    print(f"\n✅ Similarity antara wajah:")
+    print(f"   {os.path.basename(path_image)} dan {os.path.basename(path_image)} => {similarity:.4f}")
+
+    threshold = 1.0
+    if similarity <= threshold:
+        print("🟢 MATCH (wajah kemungkinan mirip)")
+    else:
+        print("🔴 NOT MATCH (wajah kemungkinan berbeda)")
 
     # Ekstraksi fitur wajah
     path_image = "../Output/MCNN/DataSet/Sunda/Afriza"
