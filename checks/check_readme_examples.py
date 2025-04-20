@@ -88,7 +88,7 @@ def detect_and_crop_faces(images, filenames):
 
         for i, (x, y, w, h) in enumerate(faces):
             face = img[y:y+h, x:x+w]
-            new_filename = f"face_{i}_{filename}"
+            new_filename = filename
             cropped_faces.append(face)
             cropped_filenames.append(new_filename)
 
@@ -151,7 +151,7 @@ def detect_face_with_retina_face(images, filenames):
 
 def save_images(images_aug, filenames, directory):
     for img_aug, filename in zip(images_aug, filenames):
-        save_path = os.path.join("../Output", directory, f"{filename}")
+        save_path = os.path.join("Output", directory, f"{filename}")
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
         img_aug_bgr = cv2.cvtColor(img_aug, cv2.COLOR_RGB2BGR)
@@ -170,7 +170,7 @@ def read_csv(path_csv):
     filenames = []
     for path in image_paths:
         if path.lower().endswith(('.png', '.jpg', '.jpeg')):
-            img = cv2.imread("../"+path)
+            img = cv2.imread(path)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             images.append(img)
             filenames.append(path)
@@ -210,6 +210,40 @@ def get_face_embeddings_and_similarity(images, filenames):
 def calculate_face_similarity(embedding1, embedding2):
     distance = F.pairwise_distance(embedding1.unsqueeze(0), embedding2.unsqueeze(0))
     return distance.item()
+
+def implement_augmented():
+    seq = iaa.Sequential([
+        iaa.Crop(px=16, keep_size=True),   # crop 16px tapi jaga ukuran
+        iaa.Fliplr(1.0),                    # selalu flip horizontal
+        iaa.GaussianBlur(sigma=2.0),        # blur 
+        iaa.Dropout((0.01, 0.1), per_channel=0.5),
+        iaa.Resize((224, 224)),                       # Resize ke ukuran tetap sebelum augmentasi
+        iaa.Affine(rotate=(-15, 15)),                 # Rotasi acak antara -15° sampai 15°
+        iaa.Fliplr(0.5),                              # 50% kemungkinan flip horizontal
+        iaa.Multiply((0.8, 1.2)),                     # Brightness: ±20%
+        iaa.LinearContrast((0.8, 1.2)),               # Contrast: ±20%
+        iaa.AdditiveGaussianNoise(scale=(0, 0.02*255))  # Gaussian noise ringan
+    ])
+
+    images, filenames = read_csv("metadata.csv")
+
+    images_aug = seq(images=images)
+    save_images(images_aug, filenames, "Augmented")
+
+def implement_haarcascade():
+    images, filenames = read_csv("metadata.csv")
+    cropped_faces, cropped_filenames = detect_and_crop_faces(images, filenames)
+    save_images(cropped_faces, cropped_filenames, "HaarCascade")
+
+def implement_mcnn():
+    images, filenames = read_csv("metadata.csv")
+    images_mcnn, new_filenames = detect_face_with_mcnn(images, filenames)
+    save_images(images_mcnn, new_filenames, "MCNN")
+
+def implement_retinaface():
+    images, filenames = read_csv("metadata.csv")
+    images_retina, new_filenames = detect_face_with_retina_face(images[:1], filenames[:1])
+    save_images(images_retina, new_filenames, "RetinaFace")
 
 def example_simple_training_setting():
     print("Example: Simple Training Setting")
