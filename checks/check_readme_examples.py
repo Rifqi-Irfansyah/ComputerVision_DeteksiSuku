@@ -122,7 +122,6 @@ def detect_face_with_retina_face(images, filenames):
     failed = 0
 
     for img_array, fname in zip(images, filenames):
-        # RetinaFace expect BGR image, so we pass it as-is
         try:
             faces = RetinaFace.detect_faces(img_array)
         except Exception as e:
@@ -135,10 +134,10 @@ def detect_face_with_retina_face(images, filenames):
                 face = faces[face_key]
                 x1, y1, x2, y2 = map(int, face['facial_area'])
 
-                cropped = img_array[y1:y2, x1:x2]  # tetap dalam BGR
+                cropped = img_array[y1:y2, x1:x2]
                 detected_faces.append(cropped)
 
-                new_filename = f"{os.path.splitext(fname)[0]}_{i}.jpg"
+                new_filename = fname
                 new_filenames.append(new_filename)
         else:
             failed += 1
