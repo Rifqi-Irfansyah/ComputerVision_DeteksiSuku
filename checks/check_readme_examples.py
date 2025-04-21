@@ -86,6 +86,7 @@ def load_batch_from_folder(folder_path):
 def detect_and_crop_faces(images, filenames):
     cropped_faces = []
     cropped_filenames = []
+    failed = 0
 
     for img, filename in zip(images, filenames):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -94,6 +95,7 @@ def detect_and_crop_faces(images, filenames):
 
         if len(faces) == 0:
             print(f"Tidak ditemukan wajah di gambar: {filename}")
+            failed += 1
             continue
 
         for i, (x, y, w, h) in enumerate(faces):
@@ -101,7 +103,7 @@ def detect_and_crop_faces(images, filenames):
             new_filename = filename
             cropped_faces.append(face)
             cropped_filenames.append(new_filename)
-
+    print(f"‼️ {failed} Gambar tidak dapat terdeteksi wajahnya dengan HaarCascade ‼️")
     return cropped_faces, cropped_filenames
 
 detector = MTCNN(keep_all=True)
@@ -143,6 +145,11 @@ def detect_face_with_retina_face(images, filenames):
             continue
 
         if isinstance(faces, dict):
+            if not faces:
+                print(f"Tidak ada wajah ditemukan di {fname}")
+                failed += 1
+                continue
+
             for i, face_key in enumerate(faces):
                 face = faces[face_key]
                 x1, y1, x2, y2 = map(int, face['facial_area'])
@@ -373,8 +380,8 @@ def implement_mcnn():
     save_images(images_mcnn, new_filenames, "MCNN")
 
 def implement_retinaface():
-    images, filenames = read_csv("metadata.csv")
-    images_retina, new_filenames = detect_face_with_retina_face(images[:1], filenames[:1])
+    images, filenames = read_csv("metadata2.csv")
+    images_retina, new_filenames = detect_face_with_retina_face(images, filenames)
     save_images(images_retina, new_filenames, "RetinaFace")
 
 def example_simple_training_setting():
