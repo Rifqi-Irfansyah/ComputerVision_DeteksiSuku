@@ -172,6 +172,19 @@ def save_images(images_aug, filenames, directory):
         else:
             print(f"❌ Gagal menyimpan gambar: {save_path}")
 
+def save_images2(images_aug, filenames, directory):
+    for img_aug, filename in zip(images_aug, filenames):
+        save_path = os.path.join(directory, f"{filename}")
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+        img_aug_bgr = cv2.cvtColor(img_aug, cv2.COLOR_RGB2BGR)
+
+        success = cv2.imwrite(save_path, img_aug_bgr)
+        if success:
+            print(f"✅ Berhasil simpan: {save_path}")
+        else:
+            print(f"❌ Gagal menyimpan gambar: {save_path}")
+
 def read_csv(path_csv):
     df = pd.read_csv(path_csv)
     image_paths = df['path_gambar'].tolist()
@@ -229,17 +242,22 @@ def face_similarity_check(path_image1, image1_name, path_image2, image2_name, th
     for path in paths:
         if not os.path.exists(path):
             print(f"❌ Gambar tidak ditemukan: {path}")
-            return
+            return 100
         img = cv2.imread(path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         images.append(img)
 
+    #Crop Wajah
+    images_mcnn, new_path = detect_face_with_mcnn(images, paths)
+    save_images2(images_mcnn, new_path, "Uploaded_Similarity/cut")
+    if len(new_path) < 1:
+        return 100
     # Ekstraksi fitur dari dua gambar wajah
-    embeddings, _ = get_face_embeddings_and_similarity(images, paths)
+    embeddings, _ = get_face_embeddings_and_similarity(images_mcnn, new_path)
 
     if len(embeddings) != 2:
         print("❌ Gagal mendapatkan embedding dari kedua gambar.")
-        return
+        return 100
 
     similarity = calculate_face_similarity(embeddings[0], embeddings[1])
     print(f"\n✅ Similarity antara wajah:")
