@@ -255,7 +255,7 @@ def calculate_face_similarity(embedding1, embedding2):
     distance = F.pairwise_distance(embedding1.unsqueeze(0), embedding2.unsqueeze(0))
     return distance.item()
 
-def train_ethnicity_classifier(dataset_dir="../output_images/MCNN/DataSet", model_path="ethnicity_classifier_resnet50.h5"):
+def train_ethnicity_classifier(dataset_dir="output_images/MCNN/DataSet", model_path="ethnicity_classifier_resnet50.h5"):
     print("✅masuk training")
     batch_size = 5
     target_size = (224, 224)

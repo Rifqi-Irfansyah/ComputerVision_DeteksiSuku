@@ -3,12 +3,12 @@ import os
 from PIL import Image
 
 from Interface.load_dataset import load_data
-from checks.check_readme_examples import face_similarity_check
+from checks.check_readme_examples import face_similarity_check, predict_ethnicity, train_ethnicity_classifier
 
 st.set_page_config(page_title="Face App", layout="wide")
 
 st.sidebar.title("Navigation")
-menu = st.sidebar.radio("Go to", ["Dataset", "Augmentasi", "HaarCascade","MCNN", "RetinaFace", "Similarity", "About"])
+menu = st.sidebar.radio("Go to", ["Dataset", "Augmentasi", "HaarCascade","MCNN", "RetinaFace", "Similarity", "Similarity 2", "Ethnic"])
 
 if menu == "Dataset":
     load_data("Dataset", "null")
@@ -104,6 +104,67 @@ elif menu == "Similarity":
                 else:
                     st.write("🔴 NOT MATCH (wajah kemungkinan berbeda)")
 
-elif menu == "About":
-    st.subheader("ℹ️ Tentang Aplikasi")
-    st.write("Aplikasi ini dibuat dengan Streamlit untuk mengeksplorasi dataset wajah dan melakukan face recognition.")
+elif menu == "Similarity 2":
+    selected_image2 = None
+    selected_image1 = None
+    cols = st.columns([1, 1])
+    with cols[0]:
+        st.title("Gambar 1")
+        uploaded_file1 = st.file_uploader("Unggah Gambar 1", type=["jpg", "jpeg", "png"])
+        save_path = "Uploaded_Similarity"
+
+        if uploaded_file1 is not None:
+            os.makedirs(save_path, exist_ok=True)
+            file_path = os.path.join(save_path, uploaded_file1.name)
+            with open(file_path, "wb") as f:
+                f.write(uploaded_file1.getbuffer())
+            cols2 = st.columns([1, 3, 1])
+            with cols2[1]:
+                st.image(file_path, caption="Gambar yang diunggah", use_container_width=True)
+
+    with cols[1]:
+        st.title("Gambar 2")
+        uploaded_file = st.file_uploader("Unggah Gambar 2", type=["jpg", "jpeg", "png"])
+        save_path = "Uploaded_Similarity"
+
+        if uploaded_file is not None:
+            os.makedirs(save_path, exist_ok=True)
+            file_path2 = os.path.join(save_path, uploaded_file.name)
+            with open(file_path2, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            cols3 = st.columns([1, 3, 1])
+            with cols3[1]:
+                st.image(file_path2, caption="Gambar yang diunggah", use_container_width=True)
+
+
+    cols2 = st.columns([1,1,1])
+    with cols2[1]:
+        if st.button("🔍 Similarity Check", use_container_width=True):
+            similarity = face_similarity_check(file_path, "", file_path2, "")
+            st.write(f"Similarity kedua wajah = {similarity}")
+            if similarity <= 1:
+                st.write("🟢 MATCH (wajah kemungkinan mirip)")
+            else:
+                st.write("🔴 NOT MATCH (wajah kemungkinan berbeda)")
+
+elif menu == "Ethnic":
+    st.subheader("📸 Upload Foto untuk Deteksi Etnis")
+
+    uploaded_file = st.file_uploader("Unggah Gambar", type=["jpg", "jpeg", "png"])
+    save_path = "Uploaded_Ethnic"
+
+    if uploaded_file is not None:
+        os.makedirs(save_path, exist_ok=True)
+        file_path = os.path.join(save_path, uploaded_file.name)
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
+        st.success(f"Foto berhasil disimpan di: {file_path}")
+        cols = st.columns([1, 1, 1])
+        with cols[1]:
+            st.image(file_path, caption="Gambar yang diunggah", use_container_width=True)
+
+            if st.button("Deteksi Enis", use_container_width=True):
+                model, classes = train_ethnicity_classifier()
+                ethnic = predict_ethnicity(file_path, class_indices=classes)
+                st.write(f"Prediksi Etnis = {ethnic}" )
