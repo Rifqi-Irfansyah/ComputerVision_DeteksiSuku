@@ -357,17 +357,29 @@ def implement_augmented():
         iaa.GaussianBlur(sigma=2.0),        # blur 
         iaa.Dropout((0.01, 0.1), per_channel=0.5),
         iaa.Resize((224, 224)),                       # Resize ke ukuran tetap sebelum augmentasi
-        iaa.Affine(rotate=(-15, 15)),                 # Rotasi acak antara -15° sampai 15°
+        iaa.Affine(rotate=(-15, -5)),                 # Rotasi acak antara -15° sampai -5°
         iaa.Fliplr(0.5),                              # 50% kemungkinan flip horizontal
         iaa.Multiply((0.8, 1.2)),                     # Brightness: ±20%
         iaa.LinearContrast((0.8, 1.2)),               # Contrast: ±20%
         iaa.AdditiveGaussianNoise(scale=(0, 0.02*255))  # Gaussian noise ringan
     ])
 
+    seq2 = iaa.Sequential([
+        iaa.Crop(px=16, keep_size=True),   # crop 16px tapi jaga ukuran
+        iaa.Dropout((0.01, 0.1), per_channel=0.5),
+        iaa.Resize((224, 224)),                       # Resize ke ukuran tetap sebelum augmentasi
+        iaa.Affine(rotate=(5, 15)),                 # Rotasi acak antara 5° sampai 15°
+        iaa.Fliplr(0.5),                              # 50% kemungkinan flip horizontal
+        iaa.AdditiveGaussianNoise(scale=(0, 0.02*255))  # Gaussian noise ringan
+    ])
+
     images, filenames = read_csv("metadata.csv")
+    filenames_augmented = [f"{os.path.splitext(f)[0]}.2{os.path.splitext(f)[1]}" for f in filenames]
 
     images_aug = seq(images=images)
+    images_aug2 = seq2(images=images)
     save_images(images_aug, filenames, "Augmented")
+    save_images(images_aug2, filenames_augmented, "Augmented")
 
 def implement_haarcascade():
     images, filenames = read_csv("metadata.csv")

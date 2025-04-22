@@ -2,6 +2,7 @@ import streamlit as st
 import os
 from PIL import Image
 from Interface.func_detect_face import detect_face
+import time
 
 def load_data(directory, button):
     selected_subfolder = "Pilih Subfolder"
@@ -11,7 +12,8 @@ def load_data(directory, button):
     if not os.path.exists(directory):
         st.write(f"Belum Pernah Memproses {button}")
         if st.button("Run " + button):
-            detect_face(button)
+            with st.spinner("Sedang memproses..."):
+                detect_face(button)
     else:
         if(button != "null"):
             with cols[2]:
